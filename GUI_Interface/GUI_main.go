@@ -7,7 +7,7 @@ import (
 )
 
 func CreateWindow() {
-	var inTE, outTE *walk.TextEdit
+	var inTE, userId, passTe, outTE *walk.TextEdit
 
 	MainWindow{
 		Title:   "Correct request",
@@ -15,15 +15,31 @@ func CreateWindow() {
 		Layout:  VBox{},
 		Children: []Widget{
 			HSplitter{
+				MaxSize: Size{10, 20},
+				Children: []Widget{
+					TextLabel{Text: "User"},
+					TextLabel{Text: "Password"},
+					TextLabel{Text: ""},
+				},
+			},
+			HSplitter{
+				MaxSize: Size{10, 20},
+				Children: []Widget{
+					TextEdit{AssignTo: &userId, Name: "User"},
+					TextEdit{AssignTo: &passTe, Name: "Password"},
+					PushButton{
+						Text: "Check request",
+						OnClicked: func() {
+							outTE.SetText(DB_Comunicate.StartCommunicate(userId.Text(), passTe.Text(), inTE.Text()))
+						},
+					},
+				},
+			},
+			HSplitter{
+				MinSize: Size{540, 480},
 				Children: []Widget{
 					TextEdit{AssignTo: &inTE},
 					TextEdit{AssignTo: &outTE, ReadOnly: true},
-				},
-			},
-			PushButton{
-				Text: "Check request",
-				OnClicked: func() {
-					outTE.SetText(DB_Comunicate.StartCommunicate(inTE.Text()))
 				},
 			},
 		},

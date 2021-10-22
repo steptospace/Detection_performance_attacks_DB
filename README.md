@@ -1,6 +1,7 @@
 Для запуска необходимо установить:   
 go get github.com/lxn/walk  
-go get -d  github.com/akavel/rsrc
+go get -d  github.com/akavel/rsrc  
+go get github.com/lib/pq
 
 Далее необходимо создать *.manifest и скомпилировать его  
 Команда компиляции:
