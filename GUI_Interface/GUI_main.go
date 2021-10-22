@@ -1,15 +1,16 @@
 package GUI_Interface
+
 import (
+	"Coursework_DB/DB_Comunicate"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
-	"strings"
 )
 
 func CreateWindow() {
 	var inTE, outTE *walk.TextEdit
 
 	MainWindow{
-		Title:   "SCREAMO",
+		Title:   "Correct request",
 		MinSize: Size{600, 400},
 		Layout:  VBox{},
 		Children: []Widget{
@@ -20,9 +21,9 @@ func CreateWindow() {
 				},
 			},
 			PushButton{
-				Text: "SCREAM",
+				Text: "Check request",
 				OnClicked: func() {
-					outTE.SetText(strings.ToUpper(inTE.Text()))
+					outTE.SetText(DB_Comunicate.StartCommunicate(inTE.Text()))
 				},
 			},
 		},
