@@ -12,6 +12,11 @@ const (
 	dbname = "postgres"
 )
 
+func ErrorEx(err error) {
+	recover()
+	fmt.Println(err)
+}
+
 //Input: User data (PostgreSQL script)
 //Output: "Ok (all data about request)" or "Error: ..."
 func StartCommunicate(userName string, password string, textRequest string) string {
@@ -21,17 +26,28 @@ func StartCommunicate(userName string, password string, textRequest string) stri
 
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
+		defer ErrorEx(err)
 		panic(err)
 		//Не забыть про RollBack!!!
 	}
-	defer db.Close()
 
+	defer db.Close()
 	err = db.Ping()
 	if err != nil {
+		defer ErrorEx(err)
 		panic(err)
 	}
 
 	fmt.Println("Successfully connected!")
 
-	return (textRequest + userName + password)
+	rows, err := db.Query(textRequest)
+	if err != nil {
+		defer ErrorEx(err)
+		panic(err)
+	}
+
+	fmt.Println(rows)
+	defer rows.Close()
+
+	return "Success"
 }
