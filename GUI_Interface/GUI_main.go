@@ -4,9 +4,10 @@ import (
 	"Coursework_DB/DB_Comunicate"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
+	"log"
 )
 
-func CreateWindow() {
+func CreateWindow() error {
 	var inTE, userId, passTe, outTE *walk.TextEdit
 
 	MainWindow{
@@ -30,7 +31,13 @@ func CreateWindow() {
 					PushButton{
 						Text: "Check request",
 						OnClicked: func() {
-							outTE.SetText(DB_Comunicate.StartCommunicate(userId.Text(), passTe.Text(), inTE.Text()))
+							db := DB_Comunicate.Connect(userId.Text(), passTe.Text())
+							requestDB, err := DB_Comunicate.StartCommunicate(db, inTE.Text())
+							if err != nil {
+								log.Default()
+							}
+							DB_Comunicate.Close(db)
+							outTE.SetText(requestDB) // Print in window
 						},
 					},
 				},
@@ -44,4 +51,5 @@ func CreateWindow() {
 			},
 		},
 	}.Run()
+	return nil
 }
