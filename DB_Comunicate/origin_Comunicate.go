@@ -7,13 +7,15 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 	"time"
 )
 
 const (
-	host   = "localhost"
-	port   = 5432
-	dbname = "postgres"
+	host    = "localhost"
+	port    = 5432
+	dbname  = "postgres"
+	logPath = "C:\\Program Files\\PostgreSQL\\13\\data\\log"
 )
 
 func Connect(userName string, password string) *sql.DB {
@@ -25,7 +27,6 @@ func Connect(userName string, password string) *sql.DB {
 	if err != nil {
 		log.Error(err)
 		return nil
-		//Не забыть про RollBack!!!
 	}
 
 	err = db.Ping()
@@ -33,9 +34,7 @@ func Connect(userName string, password string) *sql.DB {
 		log.Error(err)
 		return nil
 	}
-
-	fmt.Println("User connection ... Success")
-
+	fmt.Println("User connection ...\n Success")
 	return db
 }
 
@@ -51,33 +50,46 @@ func StartCommunicate(db *sql.DB, textRequest string) (string, error) {
 	if err != nil {
 		log.Error(err)
 	}
+
+	/*if _, err := os.Stat(logPath + "\\logs.txt"); errors.Is(err, os.ErrNotExist) {
+		log.Error(err)
+	}
+	*/
 	end := time.Now()
 	delta := end.Sub(start)
-	hardware(delta)
+	info := hardware(delta)
 	defer rows.Close()
-	return "Success", nil
+	return info, nil
 }
 
-func hardware(deltaTime time.Duration) {
-	v, _ := mem.VirtualMemory()
-	fmt.Println("RAM:")
-	fmt.Println("Total: ", toMb(v.Total), "\nFree:", toMb(v.Free), "\nUsed:", int(v.UsedPercent), "%")
+func hardware(deltaTime time.Duration) (aboutSys string) {
+	v, err := mem.VirtualMemory()
+	if err != nil {
+		log.Error(err)
+	} else if int(v.UsedPercent) >= 95 {
+		log.Error("Error: more memory has used")
+	}
+
+	aboutSys = "RAM: " + "Total: " + convert(v.Total) + " Free:" + convert(v.Free) +
+		" Used:" + strconv.Itoa(int(v.UsedPercent)) + "%"
+
 	state, err := cpu.Percent(deltaTime, true)
 	if err != nil {
 		log.Error(err)
 	}
+
 	fmt.Println("CPU")
 	for i, j := range state {
 		fmt.Println("Core", i, ":", j, "%")
-
+		sum := +int(j)
+		if sum/(i+1) > 95 {
+			log.Error("Error: more CPU resources has used")
+		}
 	}
-	if int(v.UsedPercent) >= 95 {
-		//report in program and print text in Logs
-		// Error: more memory has used
-	}
-
+	return aboutSys
 }
 
-func toMb(value uint64) uint64 {
-	return value / 1024 / 1024
+func convert(value uint64) string {
+	mb := strconv.Itoa(int(int64(value / 1024 / 1024)))
+	return mb + "Mb"
 }

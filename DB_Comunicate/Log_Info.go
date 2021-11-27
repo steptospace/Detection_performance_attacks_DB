@@ -18,7 +18,6 @@ func Formation(userName string, password string, request string) error {
 
 	if err != nil {
 		log.Error(err)
-		//Не забыть про RollBack!!!
 	}
 
 	err = db.Ping()
@@ -27,15 +26,26 @@ func Formation(userName string, password string, request string) error {
 	}
 	fmt.Println("Successfully connected!")
 
-	db.Exec(request) // send command to database
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Commit()
+
+	res, err := db.Exec(request) // send command to database
+	if err != nil {
+		log.Error(err)
+	}
+
+	fmt.Println(res)
 
 	return nil
 }
 
 func InitLogs() string {
-	return "commit;" +
+	return "alter system set log_min_duration_statement = 0;" +
 		"alter system set log_statement = 'all';" +
-		"alter system set log_filename = 'logs';" +
+		"alter system set log_filename = 'logs.txt';" +
 		"select pg_reload_conf();"
 }
 
